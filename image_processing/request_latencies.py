@@ -73,7 +73,7 @@ def main():
     plt.legend()
     plt.tight_layout()
 
-    plt.savefig('graphs/comp-request-pol-latency-effect.png')
+    plt.savefig('graphs/comp-request-pol-latency-effect.pgf')
 
 
 if __name__ == '__main__':
