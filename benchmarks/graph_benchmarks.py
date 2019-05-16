@@ -1,20 +1,17 @@
+import matplotlib
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_with_error_bars(file_prefix,file_endings, labels, action):
+def plot_with_error_bars(fig, file_prefix,file_endings, labels, action, column):
     database_records = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000,
                         2000, 3000, 4000, 5000, 8000, 10000, 15000, 20000, 25000]
-    fig = plt.figure(figsize=(10, 10))
-    bytes_graph = fig.add_subplot(3, 1, 3)
-    time_graph = fig.add_subplot(3, 1, 1, sharex=bytes_graph)
-    allocs_graph = fig.add_subplot(3, 1, 2, sharex=bytes_graph)
+    bytes_graph = fig.add_subplot(3, 2, 4+column)
+    time_graph = fig.add_subplot(3, 2, column, sharex=bytes_graph)
+    allocs_graph = fig.add_subplot(3, 2, 2+column, sharex=bytes_graph)
 
     colours = ['blue', 'orangered', 'green']
-
-    fig.suptitle("Duration, number of memory allocations and bytes allocated during\n database queries " + action +
-                 " different number of records with and without PAM")
 
     for i, file_ending in enumerate(file_endings):
         ns_per_op = []
@@ -47,28 +44,29 @@ def plot_with_error_bars(file_prefix,file_endings, labels, action):
     #                      "different numbers of records with and without PAM")
     # time_graph.set_xlabel("Number of records")
     plt.setp(time_graph.get_xticklabels(), visible=False)
-    time_graph.set_ylabel("Time (ms)")
+    if column == 1:
+        time_graph.set_ylabel("Time (ms)", fontsize=12)
 
     # allocs_graph.set_title("Memory allocations during database queries " + action + "\n"
     #                        "different numbers of records with and without PAM")
     # allocs_graph.set_xlabel("Number of records")
     plt.setp(allocs_graph.get_xticklabels(), visible=False)
-    allocs_graph.set_ylabel("Memory allocations\n"
-                            "(1000s)")
+    if column == 1:
+        allocs_graph.set_ylabel("Memory allocations\n"
+                                "(1000s)", fontsize=14)
 
     # bytes_graph.set_title("Bytes Allocated during database queries " + action + "\n"
     #                       "different numbers of records with and without PAM")
-    bytes_graph.set_xlabel("Number of records")
-    bytes_graph.set_ylabel("Memory allocated (MB)")
+    bytes_graph.set_xlabel("Number of records", fontsize=14)
+    if column == 1:
+        bytes_graph.set_ylabel("Memory allocated (MB)", fontsize=14)
     bytes_graph.set_xbound(0, 25000)
 
-    fig.set_tight_layout({"pad": 1.0, "h_pad": 1.0, "w_pad": 0.2, "rect": [0, 0.03, 1, 0.95]})
-    plt.tight_layout()
-
     # Put a legend below current axis
-    fig.legend(loc='lower center', ncol=3, bbox_to_anchor=(0.5, 0))
-    fig_prefix = "graphs/" + file_prefix.split('/')[-1]
-    plt.savefig(fig_prefix + "mean-errors.png")
+    if column == 1:
+        bytes_graph.legend(loc='lower center', ncol=3, bbox_to_anchor=(0.5, -0.3), fontsize=10)
+    if column == 2:
+        bytes_graph.legend(loc='lower center', ncol=2, bbox_to_anchor=(0.5, -0.3), fontsize=10)
 
 
 def calculate_mean_and_error_bars(file_prefix, file_endings):
@@ -109,12 +107,24 @@ def calculate_mean_and_error_bars(file_prefix, file_endings):
 
 
 def main():
+    matplotlib.rc('text', usetex=True)
+
+    fig = plt.figure(figsize=(10, 10))
+    fig.suptitle("Duration, number of memory allocations and bytes allocated during database queries\n"
+                 " reading (left) and writing (right)"
+                 " different number of records with and without PAM", fontsize=16)
+
     calculate_mean_and_error_bars('data/read-benchmarks-', ['no-mware', 'no-caching', 'caching'])
-    plot_with_error_bars('data/read-benchmarks-', ['no-mware', 'no-caching', 'caching'],
-                         ['Without PAM', 'With PAM (no caching)', 'With PAM (caching)'], 'reading')
+    plot_with_error_bars(fig, 'data/read-benchmarks-', ['no-mware', 'no-caching', 'caching'],
+                         ['Without PAM', 'With PAM (no caching)', 'With PAM (caching)'], 'reading', 1)
 
     calculate_mean_and_error_bars('data/write-benchmarks-', ['no-mware', 'mware'])
-    plot_with_error_bars('data/write-benchmarks-', ['no-mware', 'mware'], ['Without PAM', 'With PAM'], 'writing')
+    plot_with_error_bars(fig, 'data/write-benchmarks-', ['no-mware', 'mware'], ['Without PAM', 'With PAM'], 'writing', 2)
+
+    fig.set_tight_layout({"pad": 1.0, "h_pad": 1.0, "w_pad": 0.2, "rect": [0, 0.03, 1, 0.95]})
+    plt.tight_layout()
+
+    plt.savefig("graphs/read-write-mean-errors.png")
 
 
 if __name__ == '__main__':

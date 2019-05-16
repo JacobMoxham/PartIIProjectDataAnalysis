@@ -1,3 +1,4 @@
+import matplotlib
 import matplotlib.pyplot as plt
 import scipy.stats as stats
 import numpy as np
@@ -126,52 +127,58 @@ def main():
     #
     # plt.savefig('graphs/memory-effect-server-raw.png')
     #
-    # server_memory = ["10", "20", "50", "100", "200"]
-    # bar_width = 0.3
-    # compute_bars = [38084, 38966, 30934, 32888, 34011]
-    # compute_error = [4920.7, 4914.3, 4554.9, 3920.7, 3189.2]
-    # compute_pos = np.arange(len(server_memory))
-    #
-    # raw_bars = [345922, 206366, 204967, 194344]
-    # raw_error = [78691.9, 33470.6, 51563.3, 28244.3]
-    # raw_pos = [x + bar_width for x in compute_pos[1:]]
-    #
-    # plt.bar(compute_pos, compute_bars, width=bar_width, color='red', edgecolor='black', yerr=compute_error, capsize=7, label='Compute')
-    # plt.bar(raw_pos, raw_bars, width=bar_width, color='blue', edgecolor='black', yerr=raw_error, capsize=7, label='Raw')
-    #
-    # plt.xticks([r + bar_width for r in range(len(compute_bars))], server_memory)
-    # plt.xlabel("Server Memory (MB)")
-    # plt.ylabel("Request Latency (Ms)")
-    # plt.title("Time taken to complete 100 data averaging requests (5 at a time)\n"
-    #           "for various amounts of server memory")
-    # # server has 50% of my CPU so when nodes get x% of it they have 2x% of what the server has
-    # plt.legend()
-    # plt.tight_layout()
-    #
-    # plt.savefig('graphs/memory-effect-server-averaged.png')
-    #
-    compute_percentages = ["2%", "5%", "10%", "20%"]
-    bar_width = 0.3
-    compute_bars = [516133, 240404, 64960, 31041]
-    compute_error = [39614.4, 20018.8, 5894.8, 3052.5]
-    compute_pos = np.arange(len(compute_percentages))
 
-    raw_bars = [843436, 566796, 265503]
-    raw_error = [181738.7, 54932.6, 49471.6]
+    matplotlib.rc('text', usetex=True)
+
+    plt.figure(figsize=(5, 4.8))
+    server_memory = ["10", "20", "50", "100", "200"]
+    bar_width = 0.3
+    compute_bars = [38084.0/1000, 38966.0/1000, 30934.0/1000, 32888.0/1000, 34011.0/1000]
+    compute_error = [4920.7/1000, 4914.3/1000, 4554.9/1000, 3920.7/1000, 3189.2/1000]
+    compute_pos = np.arange(len(server_memory))
+
+    raw_bars = [345922.0/1000, 206366.0/1000, 204967.0/1000, 194344.0/1000]
+    raw_error = [78691.9/1000, 33470.6/1000, 51563.3/1000, 28244.3/1000]
     raw_pos = [x + bar_width for x in compute_pos[1:]]
 
-    plt.bar(compute_pos, compute_bars, width=bar_width, color='red', edgecolor='black', yerr=compute_error, capsize=7, label='Decentralised')
-    plt.bar(raw_pos, raw_bars, width=bar_width, color='blue', edgecolor='black', yerr=raw_error, capsize=7, label='Centralised')
+    plt.bar(compute_pos, compute_bars, width=bar_width, color='red', edgecolor=['black']*5, yerr=compute_error, capsize=7, label='Compute aggregates\non Data Nodes')
+    plt.bar(raw_pos, raw_bars, width=bar_width, color='blue', edgecolor=['black']*4, yerr=raw_error, capsize=7, label='Compute aggregate\non Central Server')
 
-    plt.xticks([r + bar_width for r in range(len(compute_bars))], compute_percentages)
-    plt.xlabel("Percentage of server CPU power")
-    plt.ylabel("Request Latency (Ms)")
-    plt.title("Time taken to complete 100 data averaging requests (5 at a time)\n"
-              "for data nodes with varying percentages of the server CPU power")
+    plt.xticks([r + bar_width/2 for r in range(len(compute_bars))], server_memory)
+    plt.xlabel("Server Memory (MB)", fontsize=12)
+    plt.ylabel("Request Latency (s)", fontsize=12)
+    plt.title("$\it{EnConsComp}$ request latency for data nodes\n"
+              "with various amounts of server memory", fontsize=14)
+    # server has 50% of my CPU so when nodes get x% of it they have 2x% of what the server has
     plt.legend()
     plt.tight_layout()
 
-    plt.savefig('graphs/cpu-effect-push-data-averaged.png')
+    plt.savefig('graphs/memory-effect-server-averaged.png', bbox_inches='tight')
+
+    plt.figure(figsize=(5.0, 4.8))
+    compute_percentages = ["2%", "5%", "10%", "20%"]
+    bar_width = 0.3
+    compute_bars = [516133.0/1000, 240404.0/1000, 64960.0/1000, 31041.0/1000]
+    compute_error = [39614.4/1000, 20018.8/1000, 5894.8/1000, 3052.5/1000]
+    compute_pos = np.arange(len(compute_percentages))
+
+    raw_bars = [843436.0/1000, 566796.0/1000, 265503.0/1000]
+    raw_error = [181738.7/1000, 54932.6/1000, 49471.6/1000]
+    raw_pos = [x + bar_width for x in compute_pos[1:]]
+
+    plt.bar(compute_pos, compute_bars, width=bar_width, color='red', edgecolor=['black']*4, yerr=compute_error, capsize=7, label='Compute aggregates\non Data Nodes')
+    plt.bar(raw_pos, raw_bars, width=bar_width, color='blue', edgecolor=['black']*3, yerr=raw_error, capsize=7, label='Compute aggregate\non Central Server')
+
+    plt.xticks([r + bar_width/2 for r in range(len(compute_bars))], compute_percentages)
+    plt.xlabel("Data Node CPU power as a percentage of Server Node CPU power", fontsize=12)
+    plt.ylabel("Request Latency (s)", fontsize=12)
+    plt.title("$\it{EnConsComp}$ request latencies for data nodes with\n"
+              "varying percentages of the server compute power", fontsize=14)
+    plt.legend(bbox_to_anchor=(0.5, 0.75))
+    plt.tight_layout()
+    plt.savefig('graphs/cpu-effect-push-data-averaged.png', bbox_inches='tight')
+
+
     #
     # # TODO: retake data showing the memory of nodes doesn't have any effect as long as they have enough
     # memory_levels = []
